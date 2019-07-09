@@ -1,7 +1,7 @@
 // 3p
 // import { Group, Permission } from '@foal/typeorm';
-// import { isCommon } from '@foal/password';
-import { createConnection, getManager, /*getRepository*/ } from 'typeorm';
+import { isCommon } from '@foal/password';
+import { createConnection, getManager, getConnection } from 'typeorm';
 
 // App
 import { User } from '../app/entities';
@@ -9,27 +9,28 @@ import { User } from '../app/entities';
 export const schema = {
   additionalProperties: false,
   properties: {
-    // email: { type: 'string', format: 'email' },
-    // groups: { type: 'array', items: { type: 'string' }, uniqueItems: true, default: [] },
-    // password: { type: 'string' },
-    // userPermissions: { type: 'array', items: { type: 'string' }, uniqueItems: true, default: [] },
+    email: { type: 'string', format: 'email' },
+    groups: { type: 'array', items: { type: 'string' }, uniqueItems: true, default: [] },
+    password: { type: 'string' },
+    isVerified: { type: 'boolean', default: 'false' },
+    userPermissions: { type: 'array', items: { type: 'string' }, uniqueItems: true, default: [] },
   },
-  required: [ /* 'email', 'password' */ ],
+  required: [ 'email', 'password' ],
   type: 'object',
 };
 
-export async function main(/*args*/) {
+export async function main(args) {
+  await createConnection();
+
   const user = new User();
   // user.userPermissions = [];
   // user.groups = [];
-  // user.email = args.email;
-  // if (await isCommon(args.password)) {
-  //   console.log('This password is too common. Please choose another one.');
-  //   return;
-  // }
-  // await user.setPassword(args.password);
-
-  await createConnection();
+  user.email = args.email;
+  if (await isCommon(args.password)) {
+    console.log('This password is too common. Please choose another one.');
+    return;
+  }
+  await user.setPassword(args.password);
 
   // for (const codeName of args.userPermissions as string[]) {
   //   const permission = await getRepository(Permission).findOne({ codeName });
@@ -37,7 +38,7 @@ export async function main(/*args*/) {
   //     console.log(`No permission with the code name "${codeName}" was found.`);
   //     return;
   //   }
-  //   user.userPermissions.push(permission);
+  //   // user.userPermissions.push(permission);
   // }
 
   // for (const codeName of args.groups as string[]) {
@@ -46,7 +47,7 @@ export async function main(/*args*/) {
   //     console.log(`No group with the code name "${codeName}" was found.`);
   //     return;
   //   }
-  //   user.groups.push(group);
+  //   // user.groups.push(group);
   // }
 
   try {
@@ -56,4 +57,7 @@ export async function main(/*args*/) {
   } catch (error) {
     console.log(error.message);
   }
+
+  await getConnection().close();
 }
+
