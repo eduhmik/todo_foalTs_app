@@ -9,10 +9,13 @@ import {
   HttpResponseOK,
   ValidateBody,
   ValidateParams,
+  LoginRequired,
 } from '@foal/core';
 import { getRepository } from 'typeorm';
-import { Todo } from '../entities';
+import { Todo, User } from '../entities';
+import { fetchUser } from '@foal/typeorm';
 
+@LoginRequired({ user: fetchUser(User) })
 export class ApiController {
   @Get('/todos')
   async getTodos(ctx: Context) {
@@ -38,7 +41,8 @@ export class ApiController {
     const todo = new Todo();
     todo.text = ctx.request.body.text;
     // Make the current user the owner of the todo.
-    todo.owner = ctx.user;
+    console.log(ctx.user);
+    todo.owner = ctx.user as User;
 
 
     // save todo in the db
